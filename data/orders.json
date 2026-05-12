@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ord-001",
+    "orderNumber": "ORD-2024-001",
+    "supplier": "sup-001",
+    "description": "Batch of PCB assemblies for production line A"
+  },
+  {
+    "id": "ord-002",
+    "orderNumber": "ORD-2024-002",
+    "supplier": "sup-002",
+    "description": "M8 bolts and hex nuts, 500 units"
+  },
+  {
+    "id": "ord-003",
+    "orderNumber": "ORD-2024-003",
+    "supplier": "sup-003",
+    "description": "Aluminium extrusion profiles, 50 metres"
+  },
+  {
+    "id": "ord-004",
+    "orderNumber": "ORD-2024-004",
+    "supplier": "sup-001",
+    "description": "Sensor modules, temperature and humidity"
+  }
+]

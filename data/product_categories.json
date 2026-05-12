@@ -1,0 +1,17 @@
+[
+  { "id": "cat-001", "name": "Antrieb",           "keywords": ["motor", "antrieb", "frequenzumformer", "getriebe", "servo", "drehantrieb"] },
+  { "id": "cat-002", "name": "Sensor",             "keywords": ["sensor", "schalter", "taster", "detektor", "näherungsschalter", "lichtschranke", "präsenzschalter", "endlagenschalter", "druckschalter", "temperaturschalter", "niveauschaltung"] },
+  { "id": "cat-003", "name": "Ventil",             "keywords": ["ventil", "kugelhahn", "absperrventil", "regelventil", "magnetventil", "absperrklappe", "klappe", "schieber", "druckminderer"] },
+  { "id": "cat-004", "name": "Pumpe",              "keywords": ["pumpe", "kreiselpumpe", "dosierpumpe", "vakuumpumpe", "verdränger"] },
+  { "id": "cat-005", "name": "Steuerung",          "keywords": ["sps", "steuerung", "plc", "controller", "automatisierung", "beckhoff", "simatic", "cpu"] },
+  { "id": "cat-006", "name": "Schaltschrank",      "keywords": ["schaltschrank", "gehäuse", "rittal", "verteiler", "schrank", "tableau"] },
+  { "id": "cat-007", "name": "Kabel",              "keywords": ["kabel", "leitung", "leitungssatz", "kabelkanal", "schleppkette"] },
+  { "id": "cat-008", "name": "Messtechnik",        "keywords": ["messgerät", "durchflussmesser", "druckmesser", "temperaturmesser", "manometer", "zähler", "wärmemengenzähler"] },
+  { "id": "cat-009", "name": "Pneumatik",          "keywords": ["pneumatik", "zylinder", "druckluft", "kompressor", "ventilblock", "ventilinsel", "festo", "smc"] },
+  { "id": "cat-010", "name": "Elektro",            "keywords": ["schutzschalter", "sicherung", "relais", "schütz", "klemme", "steckdose", "transformator", "leistungsschalter"] },
+  { "id": "cat-011", "name": "Wärmetauscher",      "keywords": ["wärmetauscher", "erhitzer", "kühler", "wärmerückgewinnung", "register", "heizregister"] },
+  { "id": "cat-012", "name": "Filter",             "keywords": ["filter", "filteranlage", "rückspülfilter", "schmutzfänger", "sieb"] },
+  { "id": "cat-013", "name": "Beleuchtung",        "keywords": ["leuchte", "beleuchtung", "lampe", "led", "strahler", "leuchtmelder"] },
+  { "id": "cat-014", "name": "Sicherheitstechnik", "keywords": ["not-aus", "sicherheitsrelais", "pilz", "schmersal", "lichtvorhang", "sicherheitsschalter"] },
+  { "id": "cat-015", "name": "Dokumentation",      "keywords": ["handbuch", "datenblatt", "anleitung", "dokumentation", "zertifikat", "bescheinigung"] }
+]

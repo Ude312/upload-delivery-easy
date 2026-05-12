@@ -1,0 +1,24 @@
+[
+  {
+    "id": "tc-001",
+    "description": "Clear delivery note with all fields present",
+    "ocrText": "Delivery Note\nSupplier: Acme Corp\nOrder No: ORD-2024-001\nDate: 15/03/2024\nItems: PCB assemblies x 20",
+    "expectedFilename": "ACME-CORP_ELECTRONICS_ORD-2024-001_2024-03-15.pdf",
+    "expectedConfidenceMin": 0.8
+  },
+  {
+    "id": "tc-002",
+    "description": "Partial note — supplier alias used, date ambiguous",
+    "ocrText": "From: GPL\nRef: ORD-2024-002\nDelivered: March 2024\nContent: bolts and nuts",
+    "expectedFilename": "GLOBAL-PARTS-LTD_MECHANICAL-PARTS_ORD-2024-002_2024-03-01.pdf",
+    "expectedConfidenceMin": 0.5
+  },
+  {
+    "id": "tc-003",
+    "description": "Minimal note — only supplier name and date, no order or category",
+    "ocrText": "TechSupply GmbH\n2024-04-10",
+    "expectedFilename": null,
+    "expectedConfidenceMin": 0,
+    "expectWarnings": true
+  }
+]
