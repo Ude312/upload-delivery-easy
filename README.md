@@ -4,12 +4,15 @@ An AI-powered web app that generates standardised filenames for scanned delivery
 
 ## What it does
 
-1. User pastes OCR text from a scanned delivery note, invoice, or other document
-2. App retrieves matching supplier and category candidates from local JSON files
-3. App sends OCR text + candidates to OpenAI
-4. LLM returns structured JSON (document type, supplier, category, order number, date, confidence, warnings)
-5. App validates the filename format with a regex
-6. UI shows the filename, confidence bar, detected fields, warnings, and a copy button
+1. User **drops PDF or .txt files** directly into the drop zone (multiple files at once supported)
+2. App extracts text client-side from PDFs using `pdfjs-dist` — no cloud OCR
+3. App retrieves matching supplier and category candidates from local JSON files
+4. App sends OCR text + candidates to OpenAI
+5. LLM returns structured JSON (document type, supplier, category, order number, date, confidence, warnings)
+6. App validates the filename format with a regex
+7. UI shows each file's filename, confidence bar, detected fields, warnings, and a copy button
+
+Manual text paste is also supported as a fallback.
 
 **Output format:** `DOCTYPE_Supplier_Category_OrderNumber_YYYY-MM-DD.pdf`
 **Example:** `LS_ifm_Sensor_45001199207_2024-05-12.pdf`
