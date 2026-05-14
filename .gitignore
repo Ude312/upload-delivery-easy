@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# test data with real documents — not committed to repo
+Test_OCR/
+Test_Data/
+
 # vercel
 .vercel
 
