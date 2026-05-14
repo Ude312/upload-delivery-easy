@@ -30,6 +30,10 @@ export interface RetrievalResult {
   suppliers: Supplier[];
   productCategories: ProductCategory[];
   orders: Order[];
+  /** Article numbers found directly in the OCR text (e.g. "EL1008", "6ES7214-1AG40-0XB0") */
+  articleNumbers: string[];
+  /** Best-scoring category name, or null if score was 0 */
+  topCategoryScore: number;
 }
 
 /** Normalise a string to lowercase tokens for matching. */
@@ -60,8 +64,28 @@ function loadJson<T>(filename: string): T {
 }
 
 /**
+ * Extracts article/part numbers from OCR text.
+ * Looks for patterns like: alphanumeric codes with hyphens/dots,
+ * e.g. "EL1008", "6ES7214-1AG40-0XB0", "IFM-O5D100", "0441641"
+ * Returns up to 3 candidates, longest first.
+ */
+function extractArticleNumbers(text: string): string[] {
+  // Match codes that look like part numbers:
+  // - at least 4 chars
+  // - mix of letters+digits, optionally with hyphens/dots
+  // - NOT pure words (must contain at least one digit)
+  const matches = text.match(/\b[A-Z0-9][A-Z0-9\-\.]{3,24}\b/g) ?? [];
+  return matches
+    .filter((m) => /\d/.test(m) && /[A-Z]/.test(m)) // must have both letters and digits
+    .filter((m) => !/^\d{4}-\d{2}-\d{2}$/.test(m))  // exclude dates
+    .filter((m) => !/^45\d{6,9}$/.test(m))           // exclude KWS order numbers
+    .slice(0, 3);
+}
+
+/**
  * Keyword-based retrieval against local JSON files.
- * Returns up to 3 best-matching candidates per category.
+ * Returns up to 3 best-matching candidates per category,
+ * plus article numbers extracted directly from the OCR text.
  *
  * @param ocrText - Raw text extracted from the delivery note
  * @returns Ranked candidates for supplier, product category, and order
@@ -78,7 +102,6 @@ export async function retrieveCandidates(ocrText: string): Promise<RetrievalResu
     }))
     .sort((a, b) => b.score - a.score);
 
-  // Keep all with score > 0, or top-3 if none match
   const suppliers =
     scoredSuppliers.filter((s) => s.score > 0).length > 0
       ? scoredSuppliers.filter((s) => s.score > 0).slice(0, 3).map((s) => s.entry)
@@ -93,10 +116,11 @@ export async function retrieveCandidates(ocrText: string): Promise<RetrievalResu
     }))
     .sort((a, b) => b.score - a.score);
 
+  const topCategoryScore = scoredCategories[0]?.score ?? 0;
+
+  // Only pass categories that actually scored > 0
   const productCategories =
-    scoredCategories.filter((c) => c.score > 0).length > 0
-      ? scoredCategories.filter((c) => c.score > 0).slice(0, 3).map((c) => c.entry)
-      : scoredCategories.slice(0, 3).map((c) => c.entry);
+    scoredCategories.filter((c) => c.score > 0).slice(0, 3).map((c) => c.entry);
 
   // --- Orders ---
   const allOrders = loadJson<Order[]>("orders.json");
@@ -112,5 +136,8 @@ export async function retrieveCandidates(ocrText: string): Promise<RetrievalResu
       ? scoredOrders.filter((o) => o.score > 0).slice(0, 3).map((o) => o.entry)
       : scoredOrders.slice(0, 3).map((o) => o.entry);
 
-  return { suppliers, productCategories, orders };
+  // --- Article numbers directly from OCR text ---
+  const articleNumbers = extractArticleNumbers(ocrText.toUpperCase());
+
+  return { suppliers, productCategories, orders, articleNumbers, topCategoryScore };
 }

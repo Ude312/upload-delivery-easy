@@ -59,10 +59,12 @@ INTERNAL ORDER NUMBER (Bestellnummer):
 - If found, use it EXACTLY as printed
 - If not found on LS or AB, use "UNKNOWN"
 
-PRODUCT CATEGORY:
-- Choose from the provided candidate list
-- If none fits, use the article number or part number from the document instead
-- Do NOT invent categories
+PRODUCT CATEGORY — this is the most important field to get right:
+- PRIORITY 1: If the document contains exactly ONE article/product, use its article number or part number directly as the category (e.g. "EL1008", "6ES7214-1AG40-0XB0", "O5D100")
+- PRIORITY 2: If there are MULTIPLE articles, choose the BEST matching category name from the provided candidate list based on the product descriptions
+- PRIORITY 3: If no candidate matches and no article number is visible, use the most descriptive product keyword from the text
+- NEVER return "UNKNOWN" for productCategory — always use something from the text
+- Do NOT use generic words like "Artikel", "Produkt", "Item" as the category
 
 CONFIDENCE:
 - 1.0 only if document type, supplier, order number AND date are all clearly present
@@ -91,9 +93,16 @@ function buildUserPrompt(ocrText: string, candidates: RetrievalResult): string {
     .map((s) => `  - "${s.name}" (aliases: ${s.aliases.join(", ")})`)
     .join("\n");
 
-  const categoryList = candidates.productCategories
-    .map((c) => `  - "${c.name}" (keywords: ${c.keywords.join(", ")})`)
-    .join("\n");
+  const categoryList = candidates.productCategories.length > 0
+    ? candidates.productCategories
+        .map((c) => `  - "${c.name}" (keywords: ${c.keywords.join(", ")})`)
+        .join("\n")
+    : "  (no keyword matches found in text)";
+
+  // Article numbers extracted directly from OCR text
+  const articleNumberHint = candidates.articleNumbers.length > 0
+    ? `\n## Article/Part Numbers found in text\n${candidates.articleNumbers.map((a) => `  - ${a}`).join("\n")}\n(Use one of these directly as productCategory if there is only one main article)`
+    : "";
 
   const orderList = candidates.orders
     .map((o) => `  - "${o.orderNumber}" — ${o.description}`)
@@ -121,8 +130,9 @@ ${docTypeList}
 ## Candidate Suppliers (KWS is the CUSTOMER — do NOT use KWS as supplier)
 ${supplierList || "  (none retrieved — infer short name from text, drop GmbH/AG/SE)"}
 
-## Candidate Product Categories
-${categoryList || "  (none retrieved — use article/part number from text instead)"}
+## Candidate Product Categories (from keyword matching)
+${categoryList}
+${articleNumberHint}
 
 ## Note on Order Number
 Look for a number starting with 45 (8-11 digits). Examples: 45001199207, 450020109.
@@ -205,7 +215,7 @@ function parseLLMResponse(raw: unknown): LLMOutput {
  * If a chosen field value (or its tokens) does not appear anywhere in the OCR
  * text, we add a warning — the LLM guessed it from candidates, not from evidence.
  */
-function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string): LLMOutput {
+function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string, articleNumbers: string[]): LLMOutput {
   const ocr = ocrText.toLowerCase();
   const warnings = [...output.warnings];
 
@@ -238,6 +248,28 @@ function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string): LLMOutput {
     }
   }
   // For all other document types: silently accept UNKNOWN order number
+
+  // Category fallback: if still UNKNOWN, use first article number from OCR
+  if (output.productCategory === "UNKNOWN") {
+    if (articleNumbers.length > 0) {
+      // Remove the "could not be determined" warning since we found something
+      const filtered = warnings.filter(
+        (w) => !w.toLowerCase().includes("categor") && !w.toLowerCase().includes("kategor")
+      );
+      return { ...output, productCategory: articleNumbers[0], warnings: filtered };
+    }
+    // Last resort: extract first meaningful token from OCR that looks like a product name
+    const productMatch = ocrText.match(
+      /(?:Artikel|Produkt|Bezeichnung|Description|Item)[:\s]+([A-Za-z0-9][A-Za-z0-9\-\s]{2,30})/i
+    );
+    if (productMatch) {
+      const fallback = productMatch[1].trim().split(/\s+/).slice(0, 3).join("-");
+      const filtered = warnings.filter(
+        (w) => !w.toLowerCase().includes("categor") && !w.toLowerCase().includes("kategor")
+      );
+      return { ...output, productCategory: fallback, warnings: filtered };
+    }
+  }
 
   // Check product category: none of its words appear in the OCR
   const categoryTokens = output.productCategory
@@ -295,5 +327,5 @@ export async function extractFields(
   }
 
   const output = parseLLMResponse(parsed);
-  return auditFieldsAgainstOcr(output, ocrText);
+  return auditFieldsAgainstOcr(output, ocrText, candidates.articleNumbers);
 }
