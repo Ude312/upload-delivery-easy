@@ -197,7 +197,9 @@ function parseLLMResponse(raw: unknown): LLMOutput {
   }
   if (orderNumber === "UNKNOWN") {
     // Try to extract 45XXXXXXX directly from the raw LLM value as fallback
-    const match = orderRaw.replace(/\s/g, "").match(/45\d{6,9}/);
+    // Also try stripping trailing non-digit chars (e.g. "4500188302-4527282676" → "4500188302")
+    const cleanRaw = orderRaw.replace(/\s/g, "");
+    const match = cleanRaw.match(/45\d{6,9}/);
     if (match) {
       return { documentType, supplier, productCategory, orderNumber: match[0], date, confidence, warnings };
     }
@@ -230,14 +232,16 @@ function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string, articleNumber
     const orderInOcr = /45\d{6,9}/.test(ocrText.replace(/\s/g, ""));
 
     // If order number was found in OCR but LLM missed it, extract it
-    if (output.orderNumber === "UNKNOWN") {
-      const match = ocrText.replace(/\s/g, "").match(/45\d{6,9}/);
-      if (match) {
-        const idx = warnings.findIndex((w) => w.includes("order number") || w.includes("Bestell"));
-        if (idx !== -1) warnings.splice(idx, 1);
-        return { ...output, orderNumber: match[0], warnings };
-      }
+  // Use word-boundary aware regex to handle numbers followed by / or other chars
+  if (output.orderNumber === "UNKNOWN") {
+    const cleanOcr = ocrText.replace(/\s/g, "");
+    const match = cleanOcr.match(/45\d{6,9}/);
+    if (match) {
+      const idx = warnings.findIndex((w) => w.includes("order number") || w.includes("Bestell"));
+      if (idx !== -1) warnings.splice(idx, 1);
+      return { ...output, orderNumber: match[0], warnings };
     }
+  }
 
     if (
       output.orderNumber === "UNKNOWN" &&
@@ -252,15 +256,14 @@ function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string, articleNumber
   // Category fallback: if still UNKNOWN, use first article number from OCR
   if (output.productCategory === "UNKNOWN") {
     if (articleNumbers.length > 0) {
-      // Remove the "could not be determined" warning since we found something
       const filtered = warnings.filter(
         (w) => !w.toLowerCase().includes("categor") && !w.toLowerCase().includes("kategor")
       );
       return { ...output, productCategory: articleNumbers[0], warnings: filtered };
     }
-    // Last resort: extract first meaningful token from OCR that looks like a product name
+    // Try product description label
     const productMatch = ocrText.match(
-      /(?:Artikel|Produkt|Bezeichnung|Description|Item)[:\s]+([A-Za-z0-9][A-Za-z0-9\-\s]{2,30})/i
+      /(?:Artikel|Produkt|Bezeichnung|Description|Item|Pos\.?\s*\d+)[:\s]+([A-Za-z0-9][A-Za-z0-9\-\s]{2,30})/i
     );
     if (productMatch) {
       const fallback = productMatch[1].trim().split(/\s+/).slice(0, 3).join("-");
@@ -268,6 +271,14 @@ function auditFieldsAgainstOcr(output: LLMOutput, ocrText: string, articleNumber
         (w) => !w.toLowerCase().includes("categor") && !w.toLowerCase().includes("kategor")
       );
       return { ...output, productCategory: fallback, warnings: filtered };
+    }
+    // Last resort for invoices/receipts: use document number
+    const docNumMatch = ocrText.match(/(?:Rechnung|Lieferschein|Angebot)[^\d]*(\d{5,12})/i);
+    if (docNumMatch) {
+      const filtered = warnings.filter(
+        (w) => !w.toLowerCase().includes("categor") && !w.toLowerCase().includes("kategor")
+      );
+      return { ...output, productCategory: docNumMatch[1], warnings: filtered };
     }
   }
 
