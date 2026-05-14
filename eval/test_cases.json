@@ -1,24 +1,115 @@
 [
   {
     "id": "tc-001",
-    "description": "Clear delivery note with all fields present",
-    "ocrText": "Delivery Note\nSupplier: Acme Corp\nOrder No: ORD-2024-001\nDate: 15/03/2024\nItems: PCB assemblies x 20",
-    "expectedFilename": "ACME-CORP_ELECTRONICS_ORD-2024-001_2024-03-15.pdf",
-    "expectedConfidenceMin": 0.8
+    "description": "LS — clear Lieferschein with all fields, KWS order number present",
+    "ocrText": "Lieferschein\nifm electronic GmbH\nBestell-Nr: 45001199207\nDatum: 12.05.2024\nArtikel: Induktiver Sensor M12\nEmpfänger: KWS SAAT SE",
+    "expectedDocType": "LS",
+    "expectedSupplier": "ifm",
+    "expectedOrderPattern": "^45\\d{6,9}$",
+    "expectedFilenamePattern": "^LS_ifm_.+_45001199207_2024-05-12\\.pdf$",
+    "expectedConfidenceMin": 0.8,
+    "expectWarnings": false
   },
   {
     "id": "tc-002",
-    "description": "Partial note — supplier alias used, date ambiguous",
-    "ocrText": "From: GPL\nRef: ORD-2024-002\nDelivered: March 2024\nContent: bolts and nuts",
-    "expectedFilename": "GLOBAL-PARTS-LTD_MECHANICAL-PARTS_ORD-2024-002_2024-03-01.pdf",
-    "expectedConfidenceMin": 0.5
+    "description": "AB — Auftragsbestätigung with order number",
+    "ocrText": "Auftragsbestätigung\nSiemens AG\nIhre Bestellnummer: 450020109\nDatum: 03.04.2024\nPosition: SIMATIC S7-1200 CPU 1214C DC/DC/DC",
+    "expectedDocType": "AB",
+    "expectedSupplier": "Siemens",
+    "expectedOrderPattern": "^45\\d{6,9}$",
+    "expectedFilenamePattern": "^AB_Siemens_.+_450020109_2024-04-03\\.pdf$",
+    "expectedConfidenceMin": 0.8,
+    "expectWarnings": false
   },
   {
     "id": "tc-003",
-    "description": "Minimal note — only supplier name and date, no order or category",
-    "ocrText": "TechSupply GmbH\n2024-04-10",
-    "expectedFilename": null,
-    "expectedConfidenceMin": 0,
+    "description": "AN — Angebot, no order number expected, no warning for missing order",
+    "ocrText": "Angebot Nr. 2024-8871\nRittal GmbH & Co. KG\nDatum: 10.05.2024\nArtikel: Schaltschrank AE 1380.500\nKunde: KWS SAAT SE",
+    "expectedDocType": "AN",
+    "expectedSupplier": "Rittal",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^AN_Rittal_.+_UNKNOWN_2024-05-10\\.pdf$",
+    "expectedConfidenceMin": 0.6,
+    "expectWarnings": false,
+    "expectNoOrderWarning": true
+  },
+  {
+    "id": "tc-004",
+    "description": "RE — Rechnung, no order number expected",
+    "ocrText": "Rechnung Nr. RE-2024-00441\nFesto SE & Co. KG\nRechnungsdatum: 22.03.2024\nArtikel: Pneumatikzylinder DSBC-63\nKunde: KWS SAAT SE, Einbeck",
+    "expectedDocType": "RE",
+    "expectedSupplier": "Festo",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^RE_Festo_.+_UNKNOWN_2024-03-22\\.pdf$",
+    "expectedConfidenceMin": 0.6,
+    "expectWarnings": false,
+    "expectNoOrderWarning": true
+  },
+  {
+    "id": "tc-005",
+    "description": "DB — Datenblatt, supplier alias used, no order number",
+    "ocrText": "Datenblatt\nPhoenix Contact GmbH & Co. KG\nDatum: 01.01.2024\nProdukt: Reihenklemme UK 6 N\nArtikelnummer: 0441641",
+    "expectedDocType": "DB",
+    "expectedSupplier": "Phoenix",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^DB_Phoenix_.+_UNKNOWN_2024-01-01\\.pdf$",
+    "expectedConfidenceMin": 0.5,
+    "expectWarnings": false
+  },
+  {
+    "id": "tc-006",
+    "description": "KWS must NOT be detected as supplier",
+    "ocrText": "Lieferschein\nKWS SAAT SE\nLieferant: Murrelektronik GmbH\nBestell-Nr: 45009988771\nDatum: 07.06.2024\nArtikel: Feldverteiler MVK Metal",
+    "expectedDocType": "LS",
+    "expectedSupplier": "Murr",
+    "expectedOrderPattern": "^45\\d{6,9}$",
+    "expectedFilenamePattern": "^LS_Murr_.+_45009988771_2024-06-07\\.pdf$",
+    "expectedConfidenceMin": 0.7,
+    "expectWarnings": false,
+    "kwsMustNotBeSupplier": true
+  },
+  {
+    "id": "tc-007",
+    "description": "LS — order number present but no explicit label, must be extracted by regex",
+    "ocrText": "Lieferschein\nWAGO GmbH & Co. KG\n45003312209\n15.02.2024\nKlemmenblock 221-413",
+    "expectedDocType": "LS",
+    "expectedSupplier": "Wago",
+    "expectedOrderPattern": "^45\\d{6,9}$",
+    "expectedFilenamePattern": "^LS_Wago_.+_45003312209_2024-02-15\\.pdf$",
+    "expectedConfidenceMin": 0.6,
+    "expectWarnings": false
+  },
+  {
+    "id": "tc-008",
+    "description": "MA — Montageanleitung, no order number, low confidence acceptable",
+    "ocrText": "Montageanleitung\nBeckhoff Automation GmbH\nDatum: 2023-11-01\nProdukt: EtherCAT-Klemme EL1008",
+    "expectedDocType": "MA",
+    "expectedSupplier": "Beckhoff",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^MA_Beckhoff_.+_UNKNOWN_2023-11-01\\.pdf$",
+    "expectedConfidenceMin": 0.5,
+    "expectWarnings": false
+  },
+  {
+    "id": "tc-009",
+    "description": "LS — missing order number on Lieferschein must trigger warning",
+    "ocrText": "Lieferschein\nSick AG\nDatum: 20.04.2024\nArtikel: Lichtschranke WL12G",
+    "expectedDocType": "LS",
+    "expectedSupplier": "Sick",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^LS_Sick_.+_UNKNOWN_2024-04-20\\.pdf$",
+    "expectedConfidenceMin": 0.0,
     "expectWarnings": true
+  },
+  {
+    "id": "tc-010",
+    "description": "CE — Konformitätserklärung, minimal text, no order number",
+    "ocrText": "Konformitätserklärung\nPilz GmbH & Co. KG\nDatum: 14.03.2024\nProdukt: PNOZ s4 24VDC",
+    "expectedDocType": "CE",
+    "expectedSupplier": "Pilz",
+    "expectedOrderPattern": null,
+    "expectedFilenamePattern": "^CE_Pilz_.+_UNKNOWN_2024-03-14\\.pdf$",
+    "expectedConfidenceMin": 0.5,
+    "expectWarnings": false
   }
 ]
