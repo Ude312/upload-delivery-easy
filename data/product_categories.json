@@ -5,7 +5,7 @@
   { "id": "cat-004", "name": "Pumpe",              "keywords": ["pumpe", "kreiselpumpe", "dosierpumpe", "vakuumpumpe", "verdränger"] },
   { "id": "cat-005", "name": "Steuerung",          "keywords": ["sps", "steuerung", "plc", "controller", "automatisierung", "beckhoff", "simatic", "cpu"] },
   { "id": "cat-006", "name": "Schaltschrank",      "keywords": ["schaltschrank", "gehäuse", "rittal", "verteiler", "schrank", "tableau"] },
-  { "id": "cat-007", "name": "Kabel",              "keywords": ["kabel", "leitung", "leitungssatz", "kabelkanal", "schleppkette"] },
+  { "id": "cat-007", "name": "Kabel",              "keywords": ["kabel", "leitung", "leitungssatz", "kabelkanal", "schleppkette", "schleppkettengeeignet", "halogenfrei", "silikonfrei", "energiekette"] },
   { "id": "cat-008", "name": "Messtechnik",        "keywords": ["messgerät", "durchflussmesser", "druckmesser", "temperaturmesser", "manometer", "zähler", "wärmemengenzähler"] },
   { "id": "cat-009", "name": "Pneumatik",          "keywords": ["pneumatik", "zylinder", "druckluft", "kompressor", "ventilblock", "ventilinsel", "festo", "smc"] },
   { "id": "cat-010", "name": "Elektro",            "keywords": ["schutzschalter", "sicherung", "relais", "schütz", "klemme", "steckdose", "transformator", "leistungsschalter"] },
